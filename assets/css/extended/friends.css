@@ -11,8 +11,20 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   display: flex;
+  align-items: center;
+  gap: 0.9em;
+}
+.friend-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.friend-info {
+  display: flex;
   flex-direction: column;
-  gap: 0.25em;
+  gap: 0.2em;
 }
 .friends-list a {
   font-weight: 600;

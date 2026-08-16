@@ -2,8 +2,11 @@
 <ul class="friends-list">
 {{- range . -}}
   <li>
-    <a href="{{ .url }}" target="_blank" rel="noopener noreferrer">{{ .name }}</a>
-    {{- with .desc }}<span class="friend-desc">{{ . }}</span>{{- end }}
+    {{- with .avatar }}<img src="{{ . }}" class="friend-avatar" alt="" loading="lazy">{{ end }}
+    <div class="friend-info">
+      <a href="{{ .url }}" target="_blank" rel="noopener noreferrer">{{ .name }}</a>
+      {{- with .desc }}<span class="friend-desc">{{ . }}</span>{{- end }}
+    </div>
   </li>
 {{- end -}}
 </ul>
