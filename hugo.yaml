@@ -34,6 +34,13 @@ params:
   ShowToc: true
   TocOpen: false
 
+  profileMode:
+    enabled: true
+    title: "沃米 WoolaofUmi"
+    imageUrl: "avatar.jpg"
+    imageWidth: 120
+    imageHeight: 120
+
   homeInfoParams:
     Title: '沃米 WoolaofUmi'
 
