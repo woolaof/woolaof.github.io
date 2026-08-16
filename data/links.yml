@@ -1,4 +1,5 @@
 # 友链 / 收藏：每项 name(名称) url(地址) desc(一句话，可选)
-- name: "阮一峰的网络日志"
-  url: "https://www.ruanyifeng.com/blog/"
-  desc: "科技爱好者周刊，每周五更新"
+# 示例（把行首的 # 号去掉即可生效）：
+# - name: "阮一峰的网络日志"
+#   url: "https://www.ruanyifeng.com/blog/"
+#   desc: "科技爱好者周刊，每周五更新"
