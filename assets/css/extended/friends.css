@@ -1,0 +1,23 @@
+.friends-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.5em 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+.friends-list li {
+  padding: 0.9em 1.1em;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+}
+.friends-list a {
+  font-weight: 600;
+}
+.friend-desc {
+  color: var(--secondary);
+  font-size: 0.9em;
+}

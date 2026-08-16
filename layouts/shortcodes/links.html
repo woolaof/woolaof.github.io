@@ -1,0 +1,10 @@
+{{- with hugo.Data.links -}}
+<ul class="friends-list">
+{{- range . -}}
+  <li>
+    <a href="{{ .url }}" target="_blank" rel="noopener noreferrer">{{ .name }}</a>
+    {{- with .desc }}<span class="friend-desc">{{ . }}</span>{{- end }}
+  </li>
+{{- end -}}
+</ul>
+{{- end -}}

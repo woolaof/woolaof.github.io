@@ -47,6 +47,10 @@ menu:
       name: 标签
       url: /tags/
       weight: 20
+    - identifier: links
+      name: 友链
+      url: /links/
+      weight: 25
     - identifier: about
       name: 关于
       url: /about/
