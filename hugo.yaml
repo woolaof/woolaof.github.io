@@ -59,6 +59,10 @@ params:
 
 menu:
   main:
+    - identifier: write
+      name: 写文章
+      url: /admin/#new
+      weight: 1
     - identifier: search
       name: 搜索
       url: /search/
