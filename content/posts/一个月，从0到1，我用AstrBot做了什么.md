@@ -8,16 +8,16 @@ tags:
 ---
 ## 新世界
 
-一个月前我还在用网页端的AI，当作高级搜索引擎用。7月15号，一条B站视频（应该是[这个](https://www.bilibili.com/video/BV13rXKBPEFb)）打开了我的新世界（为什么我才开始了解这些？），我动起了研究AstrBot的念头。
+一个月前我还在用网页端的AI，当作高级搜索引擎用。7月15号，一条B站视频（应该是[这个](https://www.bilibili.com/video/BV13rXKBPEFb)）打开了我的新世界（为什么我到现在才开始了解这些？），我动起了研究AstrBot的念头。
 
-第一天，我用的是本地部署，一开始借了别人的API，对着“AuthenticationError: 401 - Invalid API key”折腾了半天，终于，AI回复了我的话：
+第一天，我用的是本地部署，一开始借了别人的API，对着“AuthenticationError: 401 - Invalid API key”折腾了半天。终于，AI回复了我的话：
 ```
 Hi! Looks like you sent ‘111’
 ```
 
 后来，我接入了DeepSeek的API，接入了QQ的官方机器人，给我的Bot——**米粒**写了人格（persona）~~从现在开始你是一只猫娘~~，装了很多插件，最重要的是astrbot_plugin_livingmemory，给米粒添加了记忆。
 
-后来，发现只能在电脑开机的时候和Bot聊天，我就把AstrBot部署到了服务器上。米粒作为我的聊天Bot的功能就差不多做成了，之后陆陆续续也有做人格的修改。
+后来，发现只能在电脑开机的时候和Bot聊天很不方便，我就把AstrBot部署到了服务器上。米粒作为我的聊天Bot的功能就差不多做成了，之后陆陆续续也有做人格的修改。
 
 到此为止，我的米粒还没有比网页端的DeepSeek独特多少。
 
