@@ -8,7 +8,7 @@ tags:
 ---
 ## 新世界
 
-一个月前我还在用网页端的AI，当作高级搜索引擎用。7月15号，一条B站视频（应该是[这个](【再见了龙虾！AstrBot安装使用指南（终极版）】 https://www.bilibili.com/video/BV13rXKBPEFb/?share_source=copy_web&vd_source=fd4917c2174973bd1cfaa32bad96b7ab)）打开了我的新世界（为什么我才开始了解这些？），我动起了研究AstrBot的念头。
+一个月前我还在用网页端的AI，当作高级搜索引擎用。7月15号，一条B站视频（应该是[这个](https://www.bilibili.com/video/BV13rXKBPEFb)）打开了我的新世界（为什么我才开始了解这些？），我动起了研究AstrBot的念头。
 
 第一天，我用的是本地部署，一开始借了别人的API，对着“AuthenticationError: 401 - Invalid API key”折腾了半天，终于，AI回复了我的话：
 ```
@@ -40,6 +40,7 @@ Hi! Looks like you sent ‘111’
 - 制卡：AI根据本课内容，生成Anki卡片
 - 复习：更正错题，在脑中回顾知识
 - 错题回流：将错题汇总到一个Obsidian笔记内，再重做
+
 本来考虑要不要用别的Agent平台，但为了我的All in one执念，还是先用着AstrBot了
 
 另外，我也将米粒作为我的拓展学习途径，用来教我一些逻辑学、心理学的知识，尤其是学了一些认知心理学的内容。
