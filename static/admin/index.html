@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>博客编辑器</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+<style>
+  :root {
+    --bg: #ffffff;
+    --text: #1d1d1f;
+    --muted: #6e6e73;
+    --line: #e8e8ed;
+    --accent: #0071e3;
+    --danger: #d70015;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  button {
+    font: inherit;
+    cursor: pointer;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+  }
+  button.ghost {
+    background: transparent;
+    color: var(--accent);
+    padding: 8px 12px;
+  }
+  button.danger { background: transparent; color: var(--danger); }
+  input[type="text"], input[type="password"], input[type="date"], textarea {
+    font: inherit;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    width: 100%;
+    color: var(--text);
+    background: #fff;
+  }
+  input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+  /* 登录视图 */
+  #login-view {
+    max-width: 420px;
+    margin: 15vh auto 0;
+    padding: 0 24px;
+  }
+  #login-view h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; }
+  #login-view p { color: var(--muted); }
+  #login-view input { margin: 12px 0; }
+  #login-view button { width: 100%; margin-top: 8px; }
+  .hint { font-size: 13px; color: var(--muted); margin-top: 16px; }
+
+  /* 编辑器视图 */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(12px);
+  }
+  #file-info { flex: 1; color: var(--muted); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  main { max-width: 900px; margin: 0 auto; padding: 24px 20px 80px; }
+
+  /* 文章列表 */
+  #list-view ul { list-style: none; padding: 0; margin: 0; }
+  #list-view li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 4px;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+  }
+  #list-view li:hover .post-title { color: var(--accent); }
+  .post-title { font-size: 16px; font-weight: 500; }
+  .post-date { color: var(--muted); font-size: 13px; }
+  .empty { color: var(--muted); padding: 40px 0; text-align: center; }
+
+  /* 编辑表单 */
+  .meta-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .meta-form .full { grid-column: 1 / -1; }
+  .meta-form label { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text); }
+
+  /* drop zone */
+  #drop-zone {
+    margin-top: 16px;
+    padding: 20px;
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  #drop-zone.drag { border-color: var(--accent); color: var(--accent); background: #f5f9ff; }
+
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1d1d1f;
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s;
+  }
+  #toast.show { opacity: 1; }
+  .error { color: var(--danger); font-size: 14px; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<div id="login-view">
+  <h1>博客编辑器</h1>
+  <p>输入 GitHub 令牌登录。令牌只保存在本地浏览器，仅用于读写当前博客仓库。</p>
+  <input type="password" id="token-input" placeholder="github_pat_..." autocomplete="off">
+  <button id="login-btn">登录</button>
+  <div class="error" id="login-error"></div>
+  <p class="hint">找不到令牌？去 GitHub → Settings → Developer settings → Personal access tokens 生成一个 fine-grained token（仓库选 woolaof/woolaof.github.io，权限开 Contents 读写）。</p>
+</div>
+
+<div id="editor-view" hidden>
+  <header>
+    <button class="ghost" id="back-btn">← 列表</button>
+    <span id="file-info"></span>
+    <button class="ghost" id="new-btn">新建</button>
+    <button id="save-btn">保存</button>
+    <button class="danger" id="delete-btn" hidden>删除</button>
+    <button class="ghost" id="logout-btn">退出</button>
+  </header>
+
+  <main>
+    <div id="list-view">
+      <h2>文章</h2>
+      <ul id="post-list"></ul>
+    </div>
+
+    <div id="edit-view" hidden>
+      <div class="meta-form">
+        <input type="text" id="f-title" class="full" placeholder="标题">
+        <input type="date" id="f-date">
+        <input type="text" id="f-tags" placeholder="标签，逗号分隔">
+        <input type="text" id="f-summary" class="full" placeholder="摘要（可选）">
+        <label><input type="checkbox" id="f-comments" checked> 开启评论</label>
+        <label><input type="checkbox" id="f-draft"> 草稿（不发布）</label>
+      </div>
+      <textarea id="editor"></textarea>
+      <div id="drop-zone">把图片拖到这里上传，会自动插入正文</div>
+    </div>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const REPO = 'woolaof/woolaof.github.io';
+  const API = 'https://api.github.com/repos/' + REPO + '/contents';
+  const TOKEN_KEY = 'blog_admin_token';
+  const POSTS_DIR = 'content/posts';
+  const IMG_DIR = 'static/images';
+
+  // ---------- token ----------
+  const getToken = () => localStorage.getItem(TOKEN_KEY);
+  const setToken = t => localStorage.setItem(TOKEN_KEY, t);
+
+  // ---------- base64 (unicode safe) ----------
+  function b64encode(str) {
+    const bytes = new TextEncoder().encode(str);
+    let bin = '';
+    for (const b of bytes) bin += String.fromCharCode(b);
+    return btoa(bin);
+  }
+  function b64decode(b64) {
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+
+  // ---------- GitHub API ----------
+  async function gh(path, opts) {
+    opts = opts || {};
+    const token = getToken();
+    if (!token) throw new Error('未登录');
+    const res = await fetch(API + '/' + path, Object.assign({}, opts, {
+      headers: Object.assign({
+        'Authorization': 'Bearer ' + token,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json',
+        'X-GitHub-Api-Version': '2022-11-28'
+      }, opts.headers || {})
+    }));
+    if (res.status === 401) {
+      setToken('');
+      showLogin();
+      throw new Error('令牌无效或已过期');
+    }
+    if (!res.ok) {
+      let msg = '请求失败 ' + res.status;
+      try { const d = await res.json(); if (d.message) msg = d.message; } catch (e) {}
+      throw new Error(msg);
+    }
+    return res.json();
+  }
+
+  async function verifyToken(token) {
+    const res = await fetch('https://api.github.com/repos/' + REPO, {
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' }
+    });
+    return res.ok;
+  }
+
+  // ---------- frontmatter ----------
+  function parseFrontmatter(content) {
+    const m = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+    if (!m) return { meta: {}, body: content };
+    const meta = {};
+    for (const line of m[1].split('\n')) {
+      const kv = line.match(/^(\w+):\s*(.*)$/);
+      if (kv) meta[kv[1]] = kv[2].trim();
+    }
+    return { meta: meta, body: m[2] };
+  }
+
+  function parseTags(str) {
+    if (!str) return [];
+    try { return JSON.parse(str); }
+    catch (e) { return str.split(',').map(s => s.trim()).filter(Boolean); }
+  }
+
+  function serializeFrontmatter(meta, body) {
+    const lines = ['---'];
+    if (meta.title) lines.push('title: "' + meta.title.replace(/"/g, '\\"') + '"');
+    if (meta.date) lines.push('date: ' + meta.date);
+    if (meta.draft !== undefined && meta.draft !== null) lines.push('draft: ' + meta.draft);
+    if (meta.comments !== undefined && meta.comments !== null) lines.push('comments: ' + meta.comments);
+    if (meta.tags && meta.tags.length) lines.push('tags: [' + meta.tags.map(t => '"' + t.replace(/"/g, '\\"') + '"').join(', ') + ']');
+    if (meta.summary) lines.push('summary: "' + meta.summary.replace(/"/g, '\\"') + '"');
+    lines.push('---');
+    lines.push('');
+    lines.push(body || '');
+    return lines.join('\n');
+  }
+
+  // ---------- UI ----------
+  const $ = id => document.getElementById(id);
+  const loginView = $('login-view');
+  const editorView = $('editor-view');
+  const listView = $('list-view');
+  const editView = $('edit-view');
+  const toast = $('toast');
+
+  let easymde = null;
+  let currentPath = null;   // 当前编辑的文件路径
+  let currentSha = null;    // 当前文件的 sha
+
+  function showLogin() {
+    loginView.hidden = false;
+    editorView.hidden = true;
+  }
+  function showEditor() {
+    loginView.hidden = true;
+    editorView.hidden = false;
+  }
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
+  function initEditor() {
+    easymde = new EasyMDE({
+      element: $('editor'),
+      spellChecker: false,
+      status: false,
+      autofocus: false,
+      placeholder: '在这里写正文…',
+      toolbar: ['bold', 'italic', 'heading', '|', 'quote', 'unordered-list', 'ordered-list', '|', 'link', 'code', 'table', 'horizontal-rule', '|', 'preview', 'side-by-side', 'fullscreen']
+    });
+  }
+
+  // ---------- 登录 ----------
+  async function login() {
+    const token = $('token-input').value.trim();
+    if (!token) { $('login-error').textContent = '请输入令牌'; return; }
+    $('login-btn').disabled = true;
+    $('login-error').textContent = '验证中…';
+    try {
+      const ok = await verifyToken(token);
+      if (!ok) throw new Error('令牌验证失败，请检查令牌和仓库权限');
+      setToken(token);
+      $('token-input').value = '';
+      $('login-error').textContent = '';
+      showEditor();
+      await loadPosts();
+      // 带 path 参数自动打开
+      const p = new URLSearchParams(location.search).get('path');
+      if (p) openFile(p);
+    } catch (e) {
+      $('login-error').textContent = e.message;
+    } finally {
+      $('login-btn').disabled = false;
+    }
+  }
+
+  // ---------- 文章列表 ----------
+  async function loadPosts() {
+    showList();
+    const ul = $('post-list');
+    ul.innerHTML = '<li class="empty">加载中…</li>';
+    try {
+      const data = await gh(POSTS_DIR);
+      const files = data.filter(f => f.type === 'file' && f.name.endsWith('.md'));
+      files.sort((a, b) => a.name < b.name ? 1 : -1);
+      if (!files.length) {
+        ul.innerHTML = '<li class="empty">还没有文章，点右上角「新建」写第一篇</li>';
+        return;
+      }
+      ul.innerHTML = '';
+      for (const f of files) {
+        const li = document.createElement('li');
+        const title = document.createElement('span');
+        title.className = 'post-title';
+        title.textContent = f.name.replace(/\.md$/, '');
+        li.appendChild(title);
+        li.onclick = () => openFile(f.path);
+        ul.appendChild(li);
+      }
+    } catch (e) {
+      ul.innerHTML = '<li class="empty">' + e.message + '</li>';
+    }
+  }
+
+  function showList() {
+    listView.hidden = false;
+    editView.hidden = true;
+    $('delete-btn').hidden = true;
+    $('file-info').textContent = '';
+  }
+
+  function showEdit() {
+    listView.hidden = true;
+    editView.hidden = false;
+  }
+
+  // ---------- 打开/新建 ----------
+  async function openFile(path) {
+    path = path.replace(/^\/+/, '');
+    try {
+      const d = await gh(path);
+      const parsed = parseFrontmatter(b64decode(d.content));
+      const meta = parsed.meta;
+      currentPath = path;
+      currentSha = d.sha;
+      $('f-title').value = meta.title || '';
+      $('f-date').value = meta.date || new Date().toISOString().slice(0, 10);
+      $('f-tags').value = parseTags(meta.tags).join(', ');
+      $('f-summary').value = meta.summary || '';
+      $('f-comments').checked = meta.comments !== 'false' && meta.comments !== false;
+      $('f-draft').checked = meta.draft === 'true' || meta.draft === true;
+      easymde.value(parsed.body);
+      $('file-info').textContent = path;
+      $('delete-btn').hidden = false;
+      showEdit();
+    } catch (e) {
+      showToast(e.message);
+    }
+  }
+
+  function newPost() {
+    currentPath = null;
+    currentSha = null;
+    $('f-title').value = '';
+    $('f-date').value = new Date().toISOString().slice(0, 10);
+    $('f-tags').value = '';
+    $('f-summary').value = '';
+    $('f-comments').checked = true;
+    $('f-draft').checked = false;
+    easymde.value('');
+    $('file-info').textContent = '新建文章';
+    $('delete-btn').hidden = true;
+    showEdit();
+  }
+
+  // ---------- 保存 ----------
+  async function save() {
+    const title = $('f-title').value.trim();
+    if (!title) { showToast('请先填标题'); return; }
+    const meta = {
+      title: title,
+      date: $('f-date').value,
+      tags: parseTags($('f-tags').value),
+      summary: $('f-summary').value.trim(),
+      comments: $('f-comments').checked,
+      draft: $('f-draft').checked
+    };
+    const body = easymde.value();
+    const content = serializeFrontmatter(meta, body);
+    const slug = currentPath ? currentPath.split('/').pop().replace(/\.md$/, '') : titleToSlug(title);
+    const path = currentPath || (POSTS_DIR + '/' + slug + '.md');
+    const isNew = !currentPath;
+    const commitMsg = (isNew ? '新文章: ' : '更新: ') + title;
+
+    $('save-btn').disabled = true;
+    try {
+      const payload = { message: commitMsg, content: b64encode(content) };
+      if (currentSha) payload.sha = currentSha;
+      const d = await gh(path, { method: 'PUT', body: JSON.stringify(payload) });
+      currentPath = path;
+      currentSha = d.content ? d.content.sha : null;
+      $('file-info').textContent = path;
+      showToast('已保存并提交，Actions 正在部署');
+      showList();
+      await loadPosts();
+    } catch (e) {
+      showToast('保存失败：' + e.message);
+    } finally {
+      $('save-btn').disabled = false;
+    }
+  }
+
+  function titleToSlug(s) {
+    const slug = s.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-').replace(/^-+|-+$/g, '');
+    return slug || 'post';
+  }
+
+  // ---------- 删除 ----------
+  async function del() {
+    if (!currentPath || !currentSha) return;
+    if (!confirm('确定删除 ' + currentPath + ' 吗？此操作会提交到仓库。')) return;
+    $('delete-btn').disabled = true;
+    try {
+      await gh(currentPath, { method: 'DELETE', body: JSON.stringify({ message: '删除: ' + currentPath, sha: currentSha }) });
+      currentPath = null;
+      currentSha = null;
+      showToast('已删除');
+      showList();
+      await loadPosts();
+    } catch (e) {
+      showToast('删除失败：' + e.message);
+    } finally {
+      $('delete-btn').disabled = false;
+    }
+  }
+
+  // ---------- 图片上传 ----------
+  function readAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+  }
+
+  async function uploadImage(file) {
+    const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+    const id = (crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(36).slice(2));
+    const name = id + '.' + ext;
+    const dataUrl = await readAsDataURL(file);
+    const b64 = dataUrl.split(',')[1];
+    await gh(IMG_DIR + '/' + name, { method: 'PUT', body: JSON.stringify({ message: '上传图片 ' + name, content: b64 }) });
+    return '/images/' + name;
+  }
+
+  const dropZone = $('drop-zone');
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+  dropZone.addEventListener('drop', async e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag');
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    for (const f of files) {
+      dropZone.textContent = '上传中 ' + f.name + '…';
+      try {
+        const url = await uploadImage(f);
+        easymde.codemirror.replaceSelection('![](' + url + ')\n');
+        showToast('图片已上传');
+      } catch (err) {
+        showToast('上传失败：' + err.message);
+      }
+    }
+    dropZone.textContent = '把图片拖到这里上传，会自动插入正文';
+  });
+
+  // ---------- 事件绑定 ----------
+  $('login-btn').addEventListener('click', login);
+  $('token-input').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+  $('back-btn').addEventListener('click', loadPosts);
+  $('new-btn').addEventListener('click', newPost);
+  $('save-btn').addEventListener('click', save);
+  $('delete-btn').addEventListener('click', del);
+  $('logout-btn').addEventListener('click', () => { setToken(''); showLogin(); });
+
+  // ---------- 启动 ----------
+  initEditor();
+  if (getToken()) {
+    showEditor();
+    loadPosts().then(() => {
+      const p = new URLSearchParams(location.search).get('path');
+      if (p) openFile(p);
+    });
+  } else {
+    showLogin();
+  }
+})();
+</script>
+</body>
+</html>

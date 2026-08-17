@@ -52,6 +52,11 @@ params:
     - name: 'rss'
       url: 'index.xml'
 
+  editPost:
+    URL: "/admin/?path=content"
+    Text: "编辑"
+    appendFilePath: true
+
 menu:
   main:
     - identifier: search
